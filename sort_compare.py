@@ -1,93 +1,78 @@
-import argparse
-# other imports go here
-
 import random
 import time
 
-def get_me_random_list(n):
-    """Generate list of n elements in random order
-    
-    :params: n: Number of elements in the list
-    :returns: A list with n elements in random order
-    """
-    a_list = list(range(n))
-    random.shuffle(a_list)
-    return a_list
-    
-
 def insertion_sort(a_list):
+    start = time.time()
+
     for index in range(1, len(a_list)):
         current_value = a_list[index]
         position = index
 
         while position > 0 and a_list[position - 1] > current_value:
             a_list[position] = a_list[position - 1]
-            position = position - 1
+            position -= 1
 
         a_list[position] = current_value
 
-
-def shellSort(alist):
-    sublistcount = len(alist)//2
-    while sublistcount > 0:
-        for startposition in range(sublistcount):
-            gapInsertionSort(alist,startposition,sublistcount)
-
-        print("After increments of size", sublistcount, "The list is",alist)
-
-        sublistcount = sublistcount // 2
+    return time.time() - start
 
 
-def gapInsertionSort(alist, start, gap):
+def shell_sort(a_list):
+    start = time.time()
 
-    for i in range(start+gap, len(alist), gap):
-        currentvalue = alist[i]
-        position = i
+    gap = len(a_list) // 2
 
-        while position >= gap and alist[position-gap] > currentvalue:
-            alist[position] = alist[position-gap]
-            position = position - gap
+    while gap > 0:
+        for start_pos in range(gap):
+            for i in range(start_pos + gap, len(a_list), gap):
+                current_value = a_list[i]
+                j = i
 
-        alist[position] = currentvalue
+                while j >= gap and a_list[j - gap] > current_value:
+                    a_list[j] = a_list[j - gap]
+                    j -= gap
+
+                a_list[j] = current_value
+
+        gap //= 2
+
+    return time.time() - start
 
 
 def python_sort(a_list):
-    """
-    Use Python built-in sorted function
+    start = time.time()
+    a_list.sort()
+    return time.time() - start
 
-    :param a_list:
-    :return: the sorted list
-    """
-    return sorted(a_list)
+def run_test(sort_fn, lists):
+    total = 0.0
+
+    for lst in lists:
+        data = lst[:]  
+        total += sort_fn(data)
+
+    return total / len(lists)
+
+
+def main():
+    sizes = [500, 1000, 5000]
+
+    for size in sizes:
+        lists = []
+        for _ in range(100):
+            lists.append([random.randint(1, 1000000) for _ in range(size)])
+
+        print(f"\nLIST SIZE = {size}")
+
+        avg_insertion = run_test(insertion_sort, lists)
+        print(f"Insertion Sort took {avg_insertion:10.7f} seconds to run, on average")
+
+        avg_shell = run_test(shell_sort, lists)
+        print(f"Shell Sort took     {avg_shell:10.7f} seconds to run, on average")
+
+        avg_python = run_test(python_sort, lists)
+        print(f"Python Sort took    {avg_python:10.7f} seconds to run, on average")
 
 
 if __name__ == "__main__":
-    """Main entry point"""
-    list_sizes = [500, 1000, 5000]
-
-    # the_size = list_sizes[0]
-
-    for the_size in list_sizes:
-        total_time = 0
-        for i in range(100):
-            mylist500 = get_me_random_list(the_size)
-            start = time.time()
-            sorted_list = python_sort(mylist500)
-            time_spent = time.time() - start
-            total_time += time_spent
-
-        avg_time = total_time / 100
-        print(f"Python sort took {avg_time:10.7f} seconds to run, on average for a list of {the_size} elements")
-
-        total_time = 0
-        for i in range(100):
-            mylist500 = get_me_random_list(the_size)
-            start = time.time()
-            insertion_sort(mylist500)
-            time_spent = time.time() - start
-            total_time += time_spent
-
-        # Repeat the same loop and use shellSort(...)
-
-        avg_time = total_time / 100
-        print(f"Insertion sort took {avg_time:10.7f} seconds to run, on average for a list of {the_size} elements")
+    main()
